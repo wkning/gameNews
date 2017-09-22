@@ -1,7 +1,7 @@
 <template>
 	<div id="Tabber">
 		<ul>
-			<li v-for="(item,index) in tabberList" @click="pushTo(item.path,index)" :class="{active1:index===selectIndex}">
+			<li v-for="(item,index) in tabberList" @click="pushTo(item.path,index)" :class="{active1:index===(selectIndex-1)}">
 				<span>
 					<icon :name=item.title :scale="2.4"></icon>
 				</span>
@@ -12,12 +12,13 @@
 </template>
 
 <script>
+import {mapState} from 'vuex'
 	export default{
 		data(){
 			return{
 				tabberList:[
 					{
-						path:"/home",
+						path:"/home/tuijian",
 						title:"主页"
 					},
 					{
@@ -32,16 +33,25 @@
 						path:"/profile",
 						title:"个人"
 					},
-				],
-				selectIndex:"0"
+				]
 			}
 		},
 		methods:{
 			pushTo(path,index){
-				this.selectIndex=index;
+				this.$store.state.selectIndex=index+1
 				this.$router.push(path);
 			}
-		}
+		},
+		computed:mapState({
+			selectIndex:function(state){
+				if(state.selectIndex){
+					this.$store.commit('select',state.selectIndex)
+				}
+				let localData = window.localStorage.getItem('selectIndex')
+				state.selectIndex=localData
+				return state.selectIndex;
+			}
+		})
 	}
 </script>
 <style lang="scss" scoped>

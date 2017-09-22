@@ -12,8 +12,8 @@
 		<div class="navList">
 			<div class="navListLeft">
 				<swiper :options="swiperOption">
-					<swiper-slide v-for="(item,index) in navList" :key="index">
-						<span :class="{bgcolor:selectIndex==index}" @click="pushTo(index,item.id)">
+					<swiper-slide v-for="(item,index) in navList" :key="index" style="text-align:center;">
+						<span :class="{bgcolor:(navIndex-1)==index}" @click="pushTo(index,item.id,item.path)">
 							{{item.name}}
 						</span>
 					</swiper-slide>
@@ -23,28 +23,15 @@
 				<icon name="功能" :scale="2.5"></icon>
 			</div>
 		</div>
-		<div class="content">
-			<ul>
-				<li v-for="item in contentData">
-					<div class="conLeft">
-						<div>{{item.Htitle}}</div>
-						<div>
-							<span>{{item.Hfrom}}</span>
-							<span>{{item.Hupdatetime|times}}小时前</span>
-						</div>
-					</div>
-					<div class="conRight">
-						<img :src=item.Hthumb>
-					</div>
-				</li>
-			</ul>
-			<div @click="loadMore">加载更多</div>
-		</div>
+		<keep-alive>
+			<router-view></router-view>
+		</keep-alive>
 	</div>
 </template>
 
 <script>
 import { swiper, swiperSlide } from 'vue-awesome-swiper'
+import {mapState} from 'vuex'
 require('swiper/dist/css/swiper.css') 
 	export default{
 		data() {
@@ -57,57 +44,47 @@ require('swiper/dist/css/swiper.css')
 			          freeMode: true
 			        },
 			        navList:[],			        
-			        selectIndex:"1",
-			        contentData:[],
-			        pageNo:1,
+			        paths:["/home/tuijian","/home/wangzhe","/home/zixun","/home/shipin","/home/tuji"]
 			    }
 		},
 		activated(){
 			var _this=this;
-			this.$http.get(window.apiAddress+"/api/home?pageNo=1&channel=1").then(function(response){
-				_this.contentData=response.data.returnData.list;
-				console.log(_this.contentData);
-			})
 			this.$http.get(window.apiAddress+"/api/category").then(function(response){
+				var j=0;
 				for(var item of response.data.returnData){
 					var arr=item.split(",")
 					var obj={};
 					obj.name=arr[0];
 					obj.id=arr[1];
+					obj.path=_this.paths[j];
+					j++;
 					_this.navList.push(obj);
 				}
+				console.log(_this.navList)
 			})
 		},
 		methods:{
-			pushTo(index,id){
-				this.selectIndex=index;
+			pushTo(index,id,path){
+				this.$store.state.navIndex=index+1;
+				this.$store.state.channel=id;
+				this.$router.push(path);
 			},
-			loadMore(){
-				this.pageNo++
-				var _this=this;
-				this.$http.get(window.apiAddress+"/api/home?pageNo="+this.pageNo+"&channel=1").then(function(response){
-					for(var item of response.data.returnData.list){
-						_this.contentData.push(item)
-					}
-				})
-			}
 		},
-		filters:{
-			times(val){
-				val=parseInt(val)
-				let pubTime = new Date(val);
-				let hours = pubTime.getHours();
-				let nowTime= new Date();
-				let hours1 = nowTime.getHours();
-				return hours1-hours
-
-			}
-		}
+		computed:mapState({
+			navIndex:function(state){
+				if(state.navIndex){
+					this.$store.commit('navIndexs',state.navIndex)
+				}
+				let localData = window.localStorage.getItem('navIndex')
+				state.navIndex=localData
+				return state.navIndex;
+			},
+		})
 	}
 </script>
 <style lang="scss" scoped>
 	.bgcolor{
-		color:blue
+		color:#00A4FC;
 	}
 	#Home{
 		.header{
@@ -144,39 +121,6 @@ require('swiper/dist/css/swiper.css')
 				justify-content: center;
 				align-items:center;
 				box-shadow: -2px 2px 3px #888888;
-			}
-		}
-		.content{
-			ul{
-				display: flex;
-				flex-direction:column;
-				li{
-					display: flex;
-					flex-direction: row;
-					height: 90px;
-					border-bottom: 1px solid #ccc;
-					padding: 10px;
-					.conLeft{
-						width: 70%;
-						display: flex;
-						flex-direction:column;
-						padding-right:10px;
-						div:nth-child(1){
-							flex: 5;
-						} 
-						div:nth-child(2){
-							flex:1;
-							display: flex;
-							justify-content: space-between;
-							font-size: 12px;
-							color: #999; 
-						}
-					}
-					.conRight{
-						width: 30%;
-						overflow: hidden;
-					}
-				}
 			}
 		}
 	}

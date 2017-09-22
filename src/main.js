@@ -6,6 +6,7 @@ import router from './router'
 import Icon from 'vue-svg-icon/Icon.vue'
 import axios from 'axios'
 import VueAwesomeSwiper from 'vue-awesome-swiper'
+import store from './Vuex/Store'
 
 Vue.config.productionTip = false
 Vue.component('icon', Icon)
@@ -22,6 +23,7 @@ if (true) {
 new Vue({
   el: '#app',
   router,
+  store,
   template: '<App/>',
   components: { App }
 })
